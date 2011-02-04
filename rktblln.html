@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script src="http://cdn.socket.io/stable/socket.io.js"></script>
+  <style>
+    h1 {
+     position: absolute;
+     top: 130px;
+    }
+    canvas{
+     border: solid 1px black;
+    }
+    .rogger{
+     display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>RocketBalloons</h1>
+  <div id="playground" width="700px" height="200px"></div>
+  <div id="rogger"></div>
+</body>  
+  <script>
+     var players = {}
+     var playground;
+     var canvas;
+     var arena;
+     var balls = [];
+     var radius = 5;
+     var friction = 90/100
+     document.onkeyup = keystrokes;
+ 
+
+     var socket = new io.Socket(null, {port: 8080, rememberTransport: false});
+      socket.connect();
+      initCanvas();
+      socket.on('message', function(obj){
+        if ('buffer' in obj){
+        
+          for (var i in obj.buffer) message(obj.buffer[i]);
+        } else message(obj);
+      });
+
+    function message(obj){
+     if ('message' in obj) {
+       //console.log(obj)
+       id = obj.message[0]
+       volpos = obj.message[1]
+       player = players[id]
+       player.x = volpos.x
+       player.y = volpos.y
+       player.vx = volpos.vx
+       player.vy = volpos.vy
+       player.radius = volpos.radius;
+       player.thrust = true;
+       
+      }
+      if ('disconnect' in obj) {
+        var to_remove = obj.disconnect
+        delete players[to_remove]
+
+      }
+      if ('connect' in obj) {
+       var newball = new Ball()
+       newball.arena = arena;
+       newball.color = "#" + (obj.connect + '').substr(0, 6);
+ 
+        players[obj.connect] = newball 
+    }
+      if ('connected' in obj) {
+      ball = new Ball();
+      ball.arena = arena;
+
+      ball.color = "#cc0"
+      ball.color = "#" + (obj.connected + '').substr(0, 6);
+      players[obj.connected] = ball 
+  
+    }
+      if ('members' in obj) {
+        var existing_players = obj.members;
+        for (i =0; i < existing_players.length; i++){
+           var newball = new Ball()
+           newball.arena = arena;
+           newball.color = "#" + (existing_players[i] + '').substr(0, 6);
+ 
+           players[existing_players[i]] = newball 
+             
+        }
+      }
+    }
+
+    function Ball(){
+      var self = this;
+      self.x      = 0;
+      self.y      = 0;
+      self.vx     = 0;
+      self.vy     = 0;
+      self.radius = 20;
+      self.min_radius = 15;
+      self.arena;
+      self.flame = false;
+      self.thrust = false;
+      self.color  = '#ccc'
+      self.talk = function(){
+        socket.send(
+        {x: self.x, y: self.y, vx: self.vx, vy: self.vy, radius: self.radius}
+        );
+      
+      }
+      self.move = function(){
+       var x = self.x
+       var y = self.y
+       var vy = self.vy
+       var vx = self.vx
+       var x0 = self.arena.x0
+       var x1 = self.arena.x1
+       var y0 = self.arena.y0
+       var y1 = self.arena.y1
+       if (self.radius > self.min_radius) {self.radius = self.radius - 0.1 }
+       if ((self.vy < 0) && (self.thrust))  {
+        self.flame = true;
+      } else {
+      self.flame = false;
+      self.thrust = false;
+      }
+       if (y < y1 -2) {vy += 1} // no gravity on the ground.
+        vy  = vy * friction;    // air slows you down
+        vx =  vx * friction;
+        if (y >= y1) {          // bounce!
+          if (Math.abs(vy) <1) { vy = 0} 
+          vy = (vy * 0.9 * -1)
+        }
+        y = y1 - Math.abs(y1 - y)
+        y = y + vy;
+                         
+ 
+        if ((x <= x0) || ( x > x1)) { vx = vx * -1} // bounce off walls
+        if (x < x0) { x = x0} // don't go past, srsly
+        if (x > x1) { x = x1} // 
+        x = x + vx
+
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+       }
+      self.draw = function(){
+        //flame
+        if (self.flame) {
+        canvas.beginPath(); 
+        canvas.moveTo(self.x - self.radius/3, self.y + self.radius)
+        canvas.lineTo(self.x, self.y + self.radius * 2)
+        canvas.lineTo(self.x + self.radius/3, self.y + self.radius)   
+        canvas.closePath();
+        canvas.strokeStyle = "red";
+        canvas.stroke();
+        canvas.fillStyle = "orange";
+        canvas.fill();
+        }
+ 
+        // ball
+        canvas.beginPath(); 
+        canvas.arc(self.x, self.y, self.radius, 0, Math.PI*2, false);
+        canvas.closePath();
+        canvas.strokeStyle = "#000";
+        canvas.stroke();
+        canvas.fillStyle = self.color;
+        canvas.fill();
+        
+    
+ }
+    }
+    function Arena(element){
+      var self = this;
+      self.h = 200; //defaults
+      self.w = 1000; //defaults
+      self.padding = 30;
+      self.x0 = 0 + self.padding;
+      self.x1 = self.w - self.padding;
+      self.y0 = 0 + self.padding;
+      self.y1 = self.h - self.padding;
+
+      self.element = element;
+      self.canvas
+      
+      self.init = function(){
+        if (!element) {return}
+        // attaches as a child of element
+        var canvas_element = document.createElement('canvas')
+        var canvas = canvas_element.getContext("2d");
+        var anchor = document.getElementById(element)
+        console.log(anchor)
+        anchor.appendChild(canvas_element)
+        canvas_element.setAttribute('width', self.w);
+        canvas_element.setAttribute('height',self.h);
+        
+        self.canvas = canvas;
+      }
+      self.drawGrid = function(){
+         for (var x = 0.5; x < self.w; x += 10) {
+            canvas.moveTo(x, 0);
+            canvas.lineTo(x, self.h);
+          }
+          for (var y = 0.5; y < self.h; y += 10) {
+            canvas.moveTo(0, y);
+            canvas.lineTo(self.w, y);
+          }
+          canvas.strokeStyle = "#eee";
+          canvas.stroke();
+        }
+       self.init();
+    }
+    
+
+    function initCanvas(){
+      arena = new Arena('playground');
+      canvas = arena.canvas;
+      setInterval(step, 100);
+      draw();
+    }
+
+   function step(){
+        draw();
+ 
+     for (player in players){
+        var ball = players[player];
+        ball.move();
+        ball.draw();
+      }
+   }
+
+    
+  function draw(){
+      canvas.clearRect(0, 0, arena.w, arena.h)
+      canvas.clearRect(0, 0, arena.w, arena.h)
+      arena.drawGrid();
+   }
+    function print(text){
+       var printspace = document.getElementById("rogger");
+       printspace.innerHTML = text;
+    }
+    function keystrokes(){
+      var keyId = event.keyCode;
+      switch(keyId){
+        case 37:
+         print('left ' + ball.vx);
+         ball.vx = ball.vx - 20;
+         break;
+        case 38:
+         print('up');
+         ball.vy = ball.vy - 20;
+         ball.radius++
+         ball.thrust = true;
+          break;
+        case 39:
+        print('right');
+        ball.vx = ball.vx + 20;
+        break;
+        case 40:
+        print('down');
+        ball.vy = ball.vy + 20;
+        break;
+   
+      }
+      ball.talk();
+   }
+  </script>  
+
+</html>
+
