@@ -26,7 +26,7 @@
      var playground;
      var canvas;
      var arena;
-     var balls = [];
+     var players = [];
      var radius = 5;
      var friction = 90/100
      document.onkeyup = keystrokes;
@@ -117,7 +117,9 @@
        var x1 = self.arena.x1
        var y0 = self.arena.y0
        var y1 = self.arena.y1
-       if (self.radius > self.min_radius) {self.radius = self.radius - 0.1 }
+       if (self.radius > self.min_radius + 1) {self.radius = self.radius - 0.1 }
+       if (self.radius < self.min_radius - 1) {self.radius = self.radius + 0.3 }
+
        if ((self.vy < 0) && (self.thrust))  {
         self.flame = true;
       } else {
@@ -173,8 +175,8 @@
     }
     function Arena(element){
       var self = this;
-      self.h = 200; //defaults
-      self.w = 1000; //defaults
+      self.h = 700; //defaults
+      self.w = 700; //defaults
       self.padding = 30;
       self.x0 = 0 + self.padding;
       self.x1 = self.w - self.padding;
@@ -221,6 +223,8 @@
     }
 
    function step(){
+        bashybashy();
+        burnyburny();
         draw();
  
      for (player in players){
@@ -230,6 +234,121 @@
       }
    }
 
+  //bashyburny
+  function burnyburny(){
+  for (player1 in players){
+   for (player2 in players) {
+     if (players[player1] == players[player2]) {continue} // don't compare to myself
+     burner = players[player1]
+     var burner_x0 = (burner.x - burner.radius/2)
+     var burner_x1 = (burner.x + burner.radius/2)
+     var burner_y0 = (burner.y + burner.radius * 2)
+     var burner_y1 = (burner.y + burner.radius)
+
+     burnee = players[player2]
+     var burnee_x0 = (burnee.x - burnee.radius)
+     var burnee_x1 = (burnee.x + burnee.radius)
+     var burnee_y0 = (burnee.y - burnee.radius)
+     var burnee_y1 = (burnee.y + burnee.radius)
+
+      // canvas.beginPath(); 
+      // canvas.moveTo(burner_x0, burner_y0)
+      // canvas.lineTo(burner_x0, burner_y1)
+      // canvas.lineTo(burner_x1, burner_y1)
+      // canvas.lineTo(burner_x1, burner_y0)
+      // canvas.lineTo(burner_x0, burner_y0)
+      // canvas.closePath();
+      // canvas.strokeStyle = "red";
+      // canvas.stroke();
+     
+     if ((
+         ((burner_x0 > burnee_x0) && (burner_x0 < burnee_x1)) || 
+         ((burner_x1 > burnee_x0) && (burner_x1 < burnee_x1))
+         ) && (
+         ((burner_y0 > burnee_y0) && (burner_y0 < burnee_y1)) || 
+         ((burner_y1 > burnee_y0) && (burner_y1 < burnee_y1))
+         
+         ))
+          
+         
+      {
+        console.log('burn!');
+          if (burner.flame == true) {
+          burnee.radius = burnee.radius * 0.8; 
+          }
+
+      }
+
+     
+   }
+  }   
+  }
+  function bashybashy(){
+   // players have bounding boxes
+   // lets bash them together and get some collisions
+   // x by x matrix, represented by a nested for loop.
+   for (player1 in players){
+    for (player2 in players) {
+      if (players[player1] == players[player2]) {continue} // don't compare to myself
+      
+      one = players[player1]
+      var one_x0 = (one.x - one.radius)
+      var one_x1 = (one.x + one.radius)
+      var one_y0 = (one.y - one.radius)
+      var one_y1 = (one.y + one.radius)
+      two = players[player2]
+      var two_x0 = (two.x - two.radius)
+      var two_x1 = (two.x + two.radius)
+      var two_y0 = (two.y - two.radius)
+      var two_y1 = (two.y + two.radius)
+      
+      if ((
+         ((two_x0 > one_x0) && (two_x0 < one_x1)) || 
+         ((two_x1 > one_x0) && (two_x1 < one_x1))
+         ) && (
+         ((two_y0 > one_y0) && (two_y0 < one_y1)) || 
+         ((two_y1 > one_y0) && (two_y1 < one_y1))
+         
+         ))
+          
+         
+      {
+        //console.log('bump');
+        var e = 0.3;
+        var x_overlap = two_x0 - one_x0;
+        var y_overlap = two_y0 - one_y0;
+        // console.log(x_overlap);
+        one.vx -= x_overlap * e ;
+        one.vy -= y_overlap * e ;
+        
+
+      }
+      // canvas.beginPath(); 
+      // canvas.moveTo(one_x0, one_y0)
+      // canvas.lineTo(one.x - one.radius, one.y + one.radius)
+      // canvas.lineTo(one.x + one.radius, one.y + one.radius)
+      // canvas.lineTo(one.x + one.radius, one.y - one.radius)
+      // canvas.lineTo(one.x - one.radius, one.y - one.radius)
+      // canvas.closePath();
+      // canvas.strokeStyle = "red";
+      // canvas.stroke();
+      
+    }
+   }
+   
+  
+  }
+  
+  //bashyburny
+  
+  
+  
+  
+  
+  
+  
+  
+  
     
   function draw(){
       canvas.clearRect(0, 0, arena.w, arena.h)
