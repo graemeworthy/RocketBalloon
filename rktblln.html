@@ -287,8 +287,20 @@
    // players have bounding boxes
    // lets bash them together and get some collisions
    // x by x matrix, represented by a nested for loop.
-   for (player1 in players){
-    for (player2 in players) {
+   sorted_players = []
+   for (var player in players) {
+           sorted_players.push(player);
+         }
+      
+   sorted_players.sort();
+   for (c0 = 0; c0 < sorted_players.length; c0++){
+     player1 = sorted_players[c0];
+     console.log(player1);
+     for (c1 = 0; c1 < sorted_players.length; c1++){
+     console.log("--");
+     player2 = sorted_players[c1];
+     
+
       if (players[player1] == players[player2]) {continue} // don't compare to myself
       
       one = players[player1]
