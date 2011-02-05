@@ -295,9 +295,7 @@
    sorted_players.sort();
    for (c0 = 0; c0 < sorted_players.length; c0++){
      player1 = sorted_players[c0];
-     console.log(player1);
-     for (c1 = 0; c1 < sorted_players.length; c1++){
-     console.log("--");
+     for (c1 = 0; c1 < sorted_players.length; c1++){     console.log("--");
      player2 = sorted_players[c1];
      
 
@@ -371,7 +369,7 @@
        var printspace = document.getElementById("rogger");
        printspace.innerHTML = text;
     }
-    function keystrokes(){
+    function keystrokes(event){
       var keyId = event.keyCode;
       switch(keyId){
         case 37:
