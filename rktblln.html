@@ -35,6 +35,7 @@
      var socket = new io.Socket(null, {port: 80, rememberTransport: false});
       socket.connect();
       initCanvas();
+      
       socket.on('message', function(obj){
         if ('buffer' in obj){
         
@@ -175,7 +176,7 @@
     }
     function Arena(element){
       var self = this;
-      self.h = 700; //defaults
+      self.h = 300; //defaults
       self.w = 700; //defaults
       self.padding = 30;
       self.x0 = 0 + self.padding;
