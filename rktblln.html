@@ -37,9 +37,10 @@
      var socket = new io.Socket();
       socket.connect();
       socket.on('connect', function(){
-      print('connected');
+        print('connected');
       })
       socket.on('message', function(obj){
+      console.log(obj)
         if ('buffer' in obj){
         
           for (var i in obj.buffer) message(obj.buffer[i]);
@@ -48,7 +49,7 @@
 
     function message(obj){
      if ('message' in obj) {
-       console.log(obj)
+       
        id = obj.message[0]
        volpos = obj.message[1]
        player = players[id]
