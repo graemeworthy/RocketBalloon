@@ -48,7 +48,7 @@
 
     function message(obj){
      if ('message' in obj) {
-       //console.log(obj)
+       console.log(obj)
        id = obj.message[0]
        volpos = obj.message[1]
        player = players[id]
@@ -80,6 +80,8 @@
       myball.arena = arena;
       myball.color = "#cc0"
       myball.color = "#" + (obj.connected + '').substr(0, 6);
+      console.log('connected as ' + obj.connected);
+
       players[obj.connected] = myball 
   
     }
@@ -224,6 +226,7 @@
     function initCanvas(){
       arena = new Arena('playground');
       canvas = arena.canvas;
+      
       setInterval(step, 100);
       draw();
     }
