@@ -2,7 +2,7 @@
 var http = require('http')
   , url = require('url')
   , fs = require('fs')
-  , io = require('./Socket.IO-node')
+  , io = require('socket.io')
   , sys = require(process.binding('natives').util ? 'util' : 'sys')
   , server;
     
