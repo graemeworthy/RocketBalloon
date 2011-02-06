@@ -33,6 +33,10 @@
  
 
      var socket = new io.Socket();
+      socket.connect();
+      socket.on('connect', function(){
+      print('connected');
+      })
       socket.on('message', function(obj){
         if ('buffer' in obj){
         
@@ -67,7 +71,6 @@
         players[obj.connect] = newball 
     }
       if ('connected' in obj) {
-      socket.connect();
       initCanvas();      
 
       console.log('connected');
