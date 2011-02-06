@@ -28,7 +28,9 @@
      var arena;
      var players = [];
      var radius = 5;
-     var friction = 90/100
+     var friction = 90/100;
+     var myball;
+     
      document.onkeyup = keystrokes;
  
 
@@ -73,13 +75,12 @@
       if ('connected' in obj) {
       initCanvas();      
 
-      console.log('connected');
-      ball = new Ball();
-      ball.arena = arena;
-
-      ball.color = "#cc0"
-      ball.color = "#" + (obj.connected + '').substr(0, 6);
-      players[obj.connected] = ball 
+      console.log('connected as ' + obj.connected);
+      myball = new Ball();
+      myball.arena = arena;
+      myball.color = "#cc0"
+      myball.color = "#" + (obj.connected + '').substr(0, 6);
+      players[obj.connected] = myball 
   
     }
       if ('members' in obj) {
@@ -233,9 +234,9 @@
         draw();
  
      for (player in players){
-        var ball = players[player];
-        ball.move();
-        ball.draw();
+        var thisball = players[player];
+        thisball.move();
+        thisball.draw();
       }
    }
 
@@ -378,26 +379,26 @@
       var keyId = event.keyCode;
       switch(keyId){
         case 37:
-         print('left ' + ball.vx);
-         ball.vx = ball.vx - 20;
+         print('left ' + myball.vx);
+         myball.vx = myball.vx - 20;
          break;
         case 38:
          print('up');
-         ball.vy = ball.vy - 20;
-         ball.radius++
-         ball.thrust = true;
+         myball.vy = myball.vy - 20;
+         myball.radius++
+         myball.thrust = true;
           break;
         case 39:
         print('right');
-        ball.vx = ball.vx + 20;
+        myball.vx = myball.vx + 20;
         break;
         case 40:
         print('down');
-        ball.vy = ball.vy + 20;
+        myball.vy = myball.vy + 20;
         break;
    
       }
-      ball.talk();
+      myball.talk();
    }
   </script>  
 
