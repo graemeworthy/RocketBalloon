@@ -14,8 +14,17 @@ server = http.createServer(function(req, res){
       res.write(fs.readFileSync('rktblln.html'));
       res.end();
       break;
-      
+    case '/RocketBalloons.png':
+	   res.writeHead(200, {'Content-Type': 'image/png'});
+	   res.write(fs.readFileSync('RocketBallons.png'));
+	   res.end();
+    case '/Clouds.png':
+	   res.writeHead(200, {'Content-Type': 'image/png'});
+	   res.write(fs.readFileSync('Clouds.png'));
+	   res.end();
+  
     case '/json.js':
+ 
     case '/chat.html':
       fs.readFile(__dirname + path, function(err, data){
         if (err) return send404(res);

@@ -4,12 +4,28 @@
   <meta charset="utf-8">
   <script src="http://cdn.socket.io/stable/socket.io.js"></script>
   <style>
+    body {
+    background: #b9caf2;
+    }
+    #header{
+    height: 150px;
+    background: url('RocketBalloons.png') no-repeat;
+    }
     h1 {
      position: absolute;
      top: 130px;
+     display: none;
+    }
+    #playground {
+     position: absolute;
+     top: 150px;
+     background: url('Clouds.png');
+     
+     
     }
     canvas{
-     border: solid 1px black;
+     
+     border: solid 1px #bcf;
     }
     .rogger{
      display: none;
@@ -17,11 +33,31 @@
   </style>
 </head>
 <body>
-  <h1>RocketBalloons</h1>
+  <div id="header"><h1>RocketBalloons</h1></div>
   <div id="playground" width="700px" height="200px"></div>
+  <div id='chatter'>
+    
+  </div>
   <div id="rogger"></div>
 </body>  
-  <script>
+  <script> 
+     function rollclouds(){
+      var clouds = document.getElementById('playground');
+      var orig_position = clouds.style.backgroundPosition
+      if (orig_position == "") {
+             orig_position = "0px 0px"
+      }
+      x = parseInt(orig_position.split(' ')[0])
+      y = parseInt(orig_position.split(' ')[1])         
+      x += 1;
+      y += 1;
+      clouds.style.backgroundPosition = x + "px " + y +"px"
+      
+     }
+     setInterval(rollclouds, 1000)
+  
+  
+  
      var players = {}
      var playground;
      var canvas;
@@ -49,10 +85,13 @@
 
     function message(obj){
      if ('message' in obj) {
-       
+       console.log(obj)
        id = obj.message[0]
        volpos = obj.message[1]
        player = players[id]
+       if (player == undefined) {return}
+       console.log(" player" + id);
+       console.log(player);
        player.x = volpos.x
        player.y = volpos.y
        player.vx = volpos.vx
@@ -98,7 +137,11 @@
         }
       }
     }
-
+    function Text(){
+      
+    
+    }
+    
     function Ball(){
       var self = this;
       self.x      = 0;
@@ -107,7 +150,6 @@
       self.vy     = 0;
       self.radius = 20;
       self.min_radius = 15;
-      self.arena;
       self.flame = false;
       self.thrust = false;
       self.color  = '#ccc'
@@ -157,6 +199,12 @@
         self.vy = vy
        }
       self.draw = function(){
+        var string = "haaaaaaaaaate"
+        var width = measureText(string)
+        
+        canvas.fillText(string, self.x + radius, self.y - self.radius);
+        
+        
         //flame
         if (self.flame) {
         canvas.beginPath(); 
@@ -185,7 +233,7 @@
     function Arena(element){
       var self = this;
       self.h = 300; //defaults
-      self.w = 700; //defaults
+      self.w = 650; //defaults
       self.padding = 30;
       self.x0 = 0 + self.padding;
       self.x1 = self.w - self.padding;
@@ -372,8 +420,8 @@
     
   function draw(){
       canvas.clearRect(0, 0, arena.w, arena.h)
-      canvas.clearRect(0, 0, arena.w, arena.h)
-      arena.drawGrid();
+      //canvas.clearRect(0, 0, arena.w, arena.h)
+      //arena.drawGrid();
    }
     function print(text){
        var printspace = document.getElementById("rogger");
