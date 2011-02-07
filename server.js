@@ -37,7 +37,6 @@ send404 = function(res){
 
 server.listen(8347);
 
-
 var io = io.listen(server)
   , buffer = [];
 var clients = [];  
