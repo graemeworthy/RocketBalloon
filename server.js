@@ -36,7 +36,6 @@ send404 = function(res){
 };
 
 server.listen(8347);
-//server.listen(8080);
 
 
 var io = io.listen(server)
