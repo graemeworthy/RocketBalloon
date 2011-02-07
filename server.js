@@ -46,28 +46,28 @@ send404 = function(res){
 
 server.listen(8347);
 
-var io = io.listen(server)
-  , buffer = [];
-var clients = [];  
-function remove_client(id){
-    clients = clients.slice(0, clients.indexOf(id)).concat(clients.slice(clients.indexOf(id) + 1))
-}
-io.on('connection', function(client){
-  client.send({ buffer: buffer });
-  client.send({ connected: client.sessionId});
-  client.send({ members: clients});
-  clients.push(client.sessionId);
-  client.broadcast({ connect: client.sessionId});
-  
-  client.on('message', function(message){
-    var msg = { message: [client.sessionId, message] };
-    buffer.push(msg);
-    if (buffer.length > 15) buffer.shift();
-    client.broadcast(msg);
-  });
-
-  client.on('disconnect', function(){
-    client.broadcast({ disconnect: client.sessionId }); 
-    remove_client(client.sessionId);
-  });
-});
+// var io = io.listen(server)
+//   , buffer = [];
+// var clients = [];  
+// function remove_client(id){
+//     clients = clients.slice(0, clients.indexOf(id)).concat(clients.slice(clients.indexOf(id) + 1))
+// }
+// io.on('connection', function(client){
+//   client.send({ buffer: buffer });
+//   client.send({ connected: client.sessionId});
+//   client.send({ members: clients});
+//   clients.push(client.sessionId);
+//   client.broadcast({ connect: client.sessionId});
+//   
+//   client.on('message', function(message){
+//     var msg = { message: [client.sessionId, message] };
+//     buffer.push(msg);
+//     if (buffer.length > 15) buffer.shift();
+//     client.broadcast(msg);
+//   });
+// 
+//   client.on('disconnect', function(){
+//     client.broadcast({ disconnect: client.sessionId }); 
+//     remove_client(client.sessionId);
+//   });
+// });
