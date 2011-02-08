@@ -5,7 +5,10 @@
   <script src="http://cdn.socket.io/stable/socket.io.js"></script>
   <style>
     body {
-    background: #b9caf2;
+    background-color: #b9caf2;
+    background-color: #b8e436;
+    background: #b8e4e6 url('Clouds.png') repeat-x;
+
     }
     #header{
     height: 150px;
@@ -13,13 +16,18 @@
     }
     h1 {
      position: absolute;
-     top: 130px;
+     top: 0px;
      display: none;
     }
-    #playground {
-     position: absolute;
-     top: 150px;
-     background: url('Clouds.png');
+    #playground{
+    position: absolute;
+    top: 0px;}
+    #wrapper{
+    margin-left: auto;
+    margin-right: auto;  
+    width: 700px;
+    
+    
      
      
     }
@@ -27,22 +35,24 @@
      
      border: solid 1px #bcf;
     }
-    .rogger{
+    #rogger{
      display: none;
     }
   </style>
 </head>
-<body>
+<body id="body">
+  <div id="wrapper">
   <div id="header"><h1>RocketBalloons</h1></div>
-  <div id="playground" width="700px" height="200px"></div>
+  <div id="playground" width="700px" height="700px"></div>
   <div id='chatter'>
     
   </div>
   <div id="rogger"></div>
+  </div>
 </body>  
   <script> 
      function rollclouds(){
-      var clouds = document.getElementById('playground');
+      var clouds = document.getElementById('body');
       var orig_position = clouds.style.backgroundPosition
       if (orig_position == "") {
              orig_position = "0px 0px"
@@ -50,7 +60,7 @@
       x = parseInt(orig_position.split(' ')[0])
       y = parseInt(orig_position.split(' ')[1])         
       x += 1;
-      y += 1;
+      y += 0;
       clouds.style.backgroundPosition = x + "px " + y +"px"
       
      }
@@ -70,7 +80,7 @@
      document.onkeyup = keystrokes;
  
 
-     var socket = new io.Socket(null, {port: 80});
+     var socket = new io.Socket(null, {port: 8347});
       socket.connect();
       socket.on('connect', function(){
         print('connected');
@@ -199,8 +209,8 @@
         self.vy = vy
        }
       self.draw = function(){
-        var string = "haaaaaaaaaate"
-        var width = measureText(string)
+        var string = ""
+        var width = canvas.measureText(string)
         
         canvas.fillText(string, self.x + radius, self.y - self.radius);
         
@@ -232,7 +242,7 @@
     }
     function Arena(element){
       var self = this;
-      self.h = 300; //defaults
+      self.h = 600; //defaults
       self.w = 650; //defaults
       self.padding = 30;
       self.x0 = 0 + self.padding;
