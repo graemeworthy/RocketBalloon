@@ -183,6 +183,7 @@
 
     function Ball(){
       var self = this;
+      self.last_time = Date.now();
       self.x      = 0;
       self.y      = 0;
       self.vx     = 0;
@@ -199,6 +200,9 @@
 
       }
       self.move = function(){
+       var now = Date.now()
+       var diff_time = now - self.last_time
+       var k = diff_time / 100
        var x = self.x
        var y = self.y
        var vy = self.vy
@@ -224,18 +228,19 @@
           vy = (vy * 0.9 * -1)
         }
         y = y1 - Math.abs(y1 - y)
-        y = y + vy;
+        y = y + (vy * k);
 
 
         if ((x <= x0) || ( x > x1)) { vx = vx * -1} // bounce off walls
         if (x < x0) { x = x0} // don't go past, srsly
         if (x > x1) { x = x1} //
-        x = x + vx
+        x = x + (vx * k)
 
         self.x = x
         self.y = y
         self.vx = vx
         self.vy = vy
+        self.last_time = now;
        }
       self.draw = function(){
         var string = ""
@@ -262,6 +267,7 @@
         canvas.arc(self.x, self.y, self.radius, 0, (Math.PI*2 | 0), false);
         canvas.closePath();
         canvas.strokeStyle = "#000";
+        canvas.lineWidth = 3;
         canvas.stroke();
         canvas.fillStyle = self.color;
         canvas.fill();
@@ -288,7 +294,6 @@
         var canvas_element = document.createElement('canvas')
         var canvas = canvas_element.getContext("2d");
         var anchor = document.getElementById(element)
-        console.log(anchor)
         anchor.appendChild(canvas_element)
         canvas_element.setAttribute('width', self.w);
         canvas_element.setAttribute('height',self.h);
@@ -315,7 +320,8 @@
       arena = new Arena('playground');
       canvas = arena.canvas;
 
-      setInterval(step, 100);
+      step();
+      safedraw();
 
     }
    function drawplayers(){
@@ -333,13 +339,14 @@
    function step(){
         bashybashy();
         burnyburny();
-        requestAnimationFrame(safedraw)
+        moveplayers();
+        requestAnimationFrame(step)
    }
    function safedraw(){
         draw();
-        moveplayers();
-        drawplayers();
 
+        drawplayers();
+        requestAnimationFrame(safedraw)
    }
 
   //bashyburny
@@ -471,7 +478,7 @@
   function draw(){
       canvas.clearRect(0, 0, arena.w, arena.h)
       //canvas.clearRect(0, 0, arena.w, arena.h)
-      arena.drawGrid();
+      // arena.drawGrid();
    }
     function print(text){
        var printspace = document.getElementById("rogger");
