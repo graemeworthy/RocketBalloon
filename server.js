@@ -54,7 +54,7 @@ send404 = function(res) {
 };
 
 // server.listen(8347);
-server.listen();
+server.listen(process.env.PORT || 8347);
 var socket = io.listen(server),
     buffer = [];
 var clients = [];
