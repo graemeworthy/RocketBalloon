@@ -5,11 +5,12 @@
 
   <style>
     body {
-    background-color: #b9caf2;
-    background-color: #b8e436;
-    background: #b8e4e6 url('Clouds.png') repeat-x;
+    padding: 0px;
+    margin: 0px;
+    background-color: #ddd;
 
     }
+
     #header{
     height: 150px;
     background: url('RocketBalloons.png') no-repeat;
@@ -22,17 +23,24 @@
     #playground{
     position: absolute;
     top: 0px;}
+
     #wrapper{
+    padding: 0px;
+    margin: 0px;
     margin-left: auto;
     margin-right: auto;
-    width: 700px;
+    width: 650px;
+    height: 600px;
+
+    background-color: #b9caf2;
+    background-color: #b8e436;
+    background: #b8e4e6 url('Clouds.png') repeat-x;
 
 
 
 
     }
     canvas{
-     border: solid 1px #bcf;
     }
     #rogger{
      display: none;
@@ -51,6 +59,10 @@
 </body>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+  window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+
   function toHex(str) {
   var hex = '';
   for(var i=0;i<str.length;i++) {
@@ -233,9 +245,9 @@
         //flame
         if (self.flame) {
         canvas.beginPath();
-        canvas.moveTo(self.x - self.radius/3, self.y + self.radius)
+        canvas.moveTo((self.x - self.radius/3) | 0, self.y + self.radius)
         canvas.lineTo(self.x, self.y + self.radius * 2)
-        canvas.lineTo(self.x + self.radius/3, self.y + self.radius)
+        canvas.lineTo((self.x + self.radius/3) | 0, self.y + self.radius)
         canvas.closePath();
         canvas.strokeStyle = "red";
         canvas.stroke();
@@ -245,7 +257,7 @@
 
         // ball
         canvas.beginPath();
-        canvas.arc(self.x, self.y, self.radius, 0, Math.PI*2, false);
+        canvas.arc(self.x, self.y, self.radius, 0, (Math.PI*2 | 0), false);
         canvas.closePath();
         canvas.strokeStyle = "#000";
         canvas.stroke();
@@ -302,19 +314,30 @@
       canvas = arena.canvas;
 
       setInterval(step, 100);
-      draw();
-    }
 
+    }
+   function drawplayers(){
+    for (player in players){
+        var thisball = players[player];
+        thisball.draw();
+      }
+   }
+   function moveplayers(){
+    for (player in players){
+        var thisball = players[player];
+        thisball.move();
+      }
+   }
    function step(){
         bashybashy();
         burnyburny();
+        requestAnimationFrame(safedraw)
+   }
+   function safedraw(){
         draw();
+        moveplayers();
+        drawplayers();
 
-     for (player in players){
-        var thisball = players[player];
-        thisball.move();
-        thisball.draw();
-      }
    }
 
   //bashyburny
@@ -446,7 +469,7 @@
   function draw(){
       canvas.clearRect(0, 0, arena.w, arena.h)
       //canvas.clearRect(0, 0, arena.w, arena.h)
-      //arena.drawGrid();
+      arena.drawGrid();
    }
     function print(text){
        var printspace = document.getElementById("rogger");
