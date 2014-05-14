@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <script src="http://cdn.socket.io/stable/socket.io.js"></script>
+
   <style>
     body {
     background-color: #b9caf2;
@@ -24,15 +24,14 @@
     top: 0px;}
     #wrapper{
     margin-left: auto;
-    margin-right: auto;  
+    margin-right: auto;
     width: 700px;
-    
-    
-     
-     
+
+
+
+
     }
     canvas{
-     
      border: solid 1px #bcf;
     }
     #rogger{
@@ -45,12 +44,20 @@
   <div id="header"><h1>RocketBalloons</h1></div>
   <div id="playground" width="700px" height="700px"></div>
   <div id='chatter'>
-    
+
   </div>
   <div id="rogger"></div>
   </div>
-</body>  
-  <script> 
+</body>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+  function toHex(str) {
+  var hex = '';
+  for(var i=0;i<str.length;i++) {
+    hex += ''+str.charCodeAt(i).toString(16);
+  }
+  return hex;
+}
      function rollclouds(){
       var clouds = document.getElementById('body');
       var orig_position = clouds.style.backgroundPosition
@@ -58,16 +65,16 @@
              orig_position = "0px 0px"
       }
       x = parseInt(orig_position.split(' ')[0])
-      y = parseInt(orig_position.split(' ')[1])         
+      y = parseInt(orig_position.split(' ')[1])
       x += 1;
       y += 0;
       clouds.style.backgroundPosition = x + "px " + y +"px"
-      
+
      }
      setInterval(rollclouds, 1000)
-  
-  
-  
+
+
+
      var players = {}
      var playground;
      var canvas;
@@ -76,28 +83,33 @@
      var radius = 5;
      var friction = 90/100;
      var myball;
-     
-     document.onkeyup = keystrokes;
- 
 
-     var socket = new io.Socket(null, {port: 8347});
-      socket.connect();
+     document.onkeyup = keystrokes;
+
+
+      // var socket = new io.Socket(null, {port: 8347});
+      // var socket = io.connect('http://localhost');
+      var socket = io.connect('http://localhost');
+
       socket.on('connect', function(){
-        print('connected');
+        console.log('connected');
       })
       socket.on('message', function(obj){
       console.log(obj)
         if ('buffer' in obj){
-        
           for (var i in obj.buffer) message(obj.buffer[i]);
         } else message(obj);
       });
 
     function message(obj){
-     if ('message' in obj) {
-       console.log(obj)
-       id = obj.message[0]
-       volpos = obj.message[1]
+     if ('movement' in obj) {
+       console.log('movement!')
+
+       id = obj.movement[0]
+       volpos = obj.movement[1]
+       console.log(volpos)
+
+
        player = players[id]
        if (player == undefined) {return}
        console.log(" player" + id);
@@ -108,32 +120,35 @@
        player.vy = volpos.vy
        player.radius = volpos.radius;
        player.thrust = true;
-       
+
       }
       if ('disconnect' in obj) {
+        console.log('disconnect')
         var to_remove = obj.disconnect
         delete players[to_remove]
 
       }
       if ('connect' in obj) {
+       console.log('new player!')
+       console.log(obj)
+
        var newball = new Ball()
        newball.arena = arena;
-       newball.color = "#" + (obj.connect + '').substr(0, 6);
- 
-        players[obj.connect] = newball 
+       newball.color = "#cc0"
+
+        players[obj.connect] = newball
     }
       if ('connected' in obj) {
-      initCanvas();      
+        console.log('connection established building world');
+      initCanvas();
 
       console.log('connected as ' + obj.connected);
       myball = new Ball();
       myball.arena = arena;
       myball.color = "#cc0"
-      myball.color = "#" + (obj.connected + '').substr(0, 6);
-      console.log('connected as ' + obj.connected);
 
-      players[obj.connected] = myball 
-  
+      players[obj.connected] = myball
+
     }
       if ('members' in obj) {
         var existing_players = obj.members;
@@ -141,17 +156,17 @@
            var newball = new Ball()
            newball.arena = arena;
            newball.color = "#" + (existing_players[i] + '').substr(0, 6);
- 
-           players[existing_players[i]] = newball 
-             
+
+           players[existing_players[i]] = newball
+
         }
       }
     }
     function Text(){
-      
-    
+
+
     }
-    
+
     function Ball(){
       var self = this;
       self.x      = 0;
@@ -164,10 +179,10 @@
       self.thrust = false;
       self.color  = '#ccc'
       self.talk = function(){
-        socket.send(
+        socket.emit('movement',
         {x: self.x, y: self.y, vx: self.vx, vy: self.vy, radius: self.radius}
         );
-      
+
       }
       self.move = function(){
        var x = self.x
@@ -191,16 +206,16 @@
         vy  = vy * friction;    // air slows you down
         vx =  vx * friction;
         if (y >= y1) {          // bounce!
-          if (Math.abs(vy) <1) { vy = 0} 
+          if (Math.abs(vy) <1) { vy = 0}
           vy = (vy * 0.9 * -1)
         }
         y = y1 - Math.abs(y1 - y)
         y = y + vy;
-                         
- 
+
+
         if ((x <= x0) || ( x > x1)) { vx = vx * -1} // bounce off walls
         if (x < x0) { x = x0} // don't go past, srsly
-        if (x > x1) { x = x1} // 
+        if (x > x1) { x = x1} //
         x = x + vx
 
         self.x = x
@@ -211,33 +226,33 @@
       self.draw = function(){
         var string = ""
         var width = canvas.measureText(string)
-        
+
         canvas.fillText(string, self.x + radius, self.y - self.radius);
-        
-        
+
+
         //flame
         if (self.flame) {
-        canvas.beginPath(); 
+        canvas.beginPath();
         canvas.moveTo(self.x - self.radius/3, self.y + self.radius)
         canvas.lineTo(self.x, self.y + self.radius * 2)
-        canvas.lineTo(self.x + self.radius/3, self.y + self.radius)   
+        canvas.lineTo(self.x + self.radius/3, self.y + self.radius)
         canvas.closePath();
         canvas.strokeStyle = "red";
         canvas.stroke();
         canvas.fillStyle = "orange";
         canvas.fill();
         }
- 
+
         // ball
-        canvas.beginPath(); 
+        canvas.beginPath();
         canvas.arc(self.x, self.y, self.radius, 0, Math.PI*2, false);
         canvas.closePath();
         canvas.strokeStyle = "#000";
         canvas.stroke();
         canvas.fillStyle = self.color;
         canvas.fill();
-        
-    
+
+
  }
     }
     function Arena(element){
@@ -252,7 +267,7 @@
 
       self.element = element;
       self.canvas
-      
+
       self.init = function(){
         if (!element) {return}
         // attaches as a child of element
@@ -263,7 +278,7 @@
         anchor.appendChild(canvas_element)
         canvas_element.setAttribute('width', self.w);
         canvas_element.setAttribute('height',self.h);
-        
+
         self.canvas = canvas;
       }
       self.drawGrid = function(){
@@ -280,12 +295,12 @@
         }
        self.init();
     }
-    
+
 
     function initCanvas(){
       arena = new Arena('playground');
       canvas = arena.canvas;
-      
+
       setInterval(step, 100);
       draw();
     }
@@ -294,7 +309,7 @@
         bashybashy();
         burnyburny();
         draw();
- 
+
      for (player in players){
         var thisball = players[player];
         thisball.move();
@@ -319,7 +334,7 @@
      var burnee_y0 = (burnee.y - burnee.radius)
      var burnee_y1 = (burnee.y + burnee.radius)
 
-      // canvas.beginPath(); 
+      // canvas.beginPath();
       // canvas.moveTo(burner_x0, burner_y0)
       // canvas.lineTo(burner_x0, burner_y1)
       // canvas.lineTo(burner_x1, burner_y1)
@@ -328,28 +343,28 @@
       // canvas.closePath();
       // canvas.strokeStyle = "red";
       // canvas.stroke();
-     
+
      if ((
-         ((burner_x0 > burnee_x0) && (burner_x0 < burnee_x1)) || 
+         ((burner_x0 > burnee_x0) && (burner_x0 < burnee_x1)) ||
          ((burner_x1 > burnee_x0) && (burner_x1 < burnee_x1))
          ) && (
-         ((burner_y0 > burnee_y0) && (burner_y0 < burnee_y1)) || 
+         ((burner_y0 > burnee_y0) && (burner_y0 < burnee_y1)) ||
          ((burner_y1 > burnee_y0) && (burner_y1 < burnee_y1))
-         
+
          ))
-          
-         
+
+
       {
         console.log('burn!');
           if (burner.flame == true) {
-          burnee.radius = burnee.radius * 0.8; 
+          burnee.radius = burnee.radius * 0.8;
           }
 
       }
 
-     
+
    }
-  }   
+  }
   }
   function bashybashy(){
    // players have bounding boxes
@@ -359,16 +374,16 @@
    for (var player in players) {
            sorted_players.push(player);
          }
-      
+
    sorted_players.sort();
    for (c0 = 0; c0 < sorted_players.length; c0++){
      player1 = sorted_players[c0];
-     for (c1 = 0; c1 < sorted_players.length; c1++){ 
+     for (c1 = 0; c1 < sorted_players.length; c1++){
      player2 = sorted_players[c1];
-     
+
 
       if (players[player1] == players[player2]) {continue} // don't compare to myself
-      
+
       one = players[player1]
       var one_x0 = (one.x - one.radius)
       var one_x1 = (one.x + one.radius)
@@ -379,17 +394,17 @@
       var two_x1 = (two.x + two.radius)
       var two_y0 = (two.y - two.radius)
       var two_y1 = (two.y + two.radius)
-      
+
       if ((
-         ((two_x0 > one_x0) && (two_x0 < one_x1)) || 
+         ((two_x0 > one_x0) && (two_x0 < one_x1)) ||
          ((two_x1 > one_x0) && (two_x1 < one_x1))
          ) && (
-         ((two_y0 > one_y0) && (two_y0 < one_y1)) || 
+         ((two_y0 > one_y0) && (two_y0 < one_y1)) ||
          ((two_y1 > one_y0) && (two_y1 < one_y1))
-         
+
          ))
-          
-         
+
+
       {
         //console.log('bump');
         var e = 0.3;
@@ -398,10 +413,10 @@
         // console.log(x_overlap);
         one.vx -= x_overlap * e ;
         one.vy -= y_overlap * e ;
-        
+
 
       }
-      // canvas.beginPath(); 
+      // canvas.beginPath();
       // canvas.moveTo(one_x0, one_y0)
       // canvas.lineTo(one.x - one.radius, one.y + one.radius)
       // canvas.lineTo(one.x + one.radius, one.y + one.radius)
@@ -410,24 +425,24 @@
       // canvas.closePath();
       // canvas.strokeStyle = "red";
       // canvas.stroke();
-      
+
     }
    }
-   
-  
+
+
   }
-  
+
   //bashyburny
-  
-  
-  
-  
-  
-  
-  
-  
-  
-    
+
+
+
+
+
+
+
+
+
+
   function draw(){
       canvas.clearRect(0, 0, arena.w, arena.h)
       //canvas.clearRect(0, 0, arena.w, arena.h)
@@ -458,11 +473,12 @@
         print('down');
         myball.vy = myball.vy + 20;
         break;
-   
+
       }
+      if (myball !== undefined) {
       myball.talk();
+      }
    }
-  </script>  
+  </script>
 
 </html>
-
